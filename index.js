@@ -1,7 +1,7 @@
 const express = require('express');
 const cors = require('cors');
 require('dotenv').config();
-const { MongoClient, ServerApiVersion } = require('mongodb');
+const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 
 const app = express();
 const port = process.env.PORT || 3000;
@@ -36,8 +36,18 @@ async function run() {
 
         // create database and collections to store data
         const database = client.db(DB_NAME);
+        const propertyCollection = database.collection('properties');
 
-
+        // API to add a property
+        app.post('/properties', async (req, res) => {
+            try {
+                const property = req.body;
+                const result = await propertyCollection.insertOne(property);
+                res.status(201).json(result);
+            } catch (error) {
+                res.status(500).json({ message: error.message });
+            }
+        });
 
 
         // Send a ping to confirm a successful connection
