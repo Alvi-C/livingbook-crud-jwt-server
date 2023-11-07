@@ -42,6 +42,7 @@ async function run() {
         app.post('/properties', async (req, res) => {
             try {
                 const property = req.body;
+                console.log(property);
                 const result = await propertyCollection.insertOne(property);
                 res.status(201).json(result);
             } catch (error) {
