@@ -37,7 +37,34 @@ async function run() {
         // create database and collections to store data
         const database = client.db(DB_NAME);
         const propertyCollection = database.collection('properties');
+        const userCollection = database.collection("users");
 
+        // ---------- USER APIs --------------------
+        // POST user data
+        app.post('/users', async (req, res) => {
+            try {
+                const user = req.body;
+                const result = await userCollection.insertOne(user);
+                res.send(result);
+            } catch (error) {
+                res.status(500).send(error);
+            }
+        });
+
+
+        // GET user data
+        app.get('/users', async (req, res) => {
+            try {
+                const cursor = userCollection.find({});
+                const result = await cursor.toArray();
+                res.send(result);
+            } catch (error) {
+                res.status(500).send(error);
+            }
+        });
+
+
+        // ---------- PROPERTY APIs --------------------
         // API to add a property
         app.post('/properties', async (req, res) => {
             try {
