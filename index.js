@@ -77,6 +77,36 @@ async function run() {
             }
         });
 
+        // API to update a property
+        app.put('/properties/:id', async (req, res) => {
+            try {
+                const id = req.params.id;
+                const updatedProperty = req.body;
+                const filter = { _id: new ObjectId(id) };
+                const options = { upsert: true };
+                const updateDoc = { $set: updatedProperty };
+                const result = await propertyCollection.updateOne(filter, updateDoc, options);
+                res.status(200).json(result);
+            } catch (error) {
+                res.status(500).json({ message: error.message });
+            }
+        });
+
+        // API to delete a property
+        app.delete('/properties/:id', async (req, res) => {
+            try {
+                const id = req.params.id;
+                const query = { _id: new ObjectId(id) };
+                const result = await propertyCollection.deleteOne(query);
+                if (result.deletedCount === 1) {
+                    res.status(200).json(result);
+                } else {
+                    res.status(404).json({ message: 'Property not found' });
+                }
+            } catch (error) {
+                res.status(500).json({ message: error.message });
+            }
+        });
 
 
         // Send a ping to confirm a successful connection
