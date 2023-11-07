@@ -50,6 +50,35 @@ async function run() {
         });
 
 
+        // API to get all properties
+        app.get('/properties', async (req, res) => {
+            try {
+                const cursor = propertyCollection.find({});
+                const properties = await cursor.toArray();
+                res.status(200).json(properties);
+            } catch (error) {
+                res.status(500).json({ message: error.message });
+            }
+        });
+
+        // API to get a single property by id
+        app.get('/properties/:id', async (req, res) => {
+            try {
+                const id = req.params.id;
+                const query = { _id: new ObjectId(id) };
+                const property = await propertyCollection.findOne(query);
+                if (property) {
+                    res.status(200).json(property);
+                } else {
+                    res.status(404).json({ message: 'Property not found' });
+                }
+            } catch (error) {
+                res.status(500).json({ message: error.message });
+            }
+        });
+
+
+
         // Send a ping to confirm a successful connection
         await client.db("admin").command({ ping: 1 });
         console.log("Pinged your deployment. You successfully connected to MongoDB!");
