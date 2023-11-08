@@ -110,11 +110,58 @@ async function run() {
             res.send(bookings);
         })
 
+        // GET endpoint to get specific user's bookings data by verifying token
+        app.get('/bookings', verifyToken, async (req, res) => {
+            // console.log('tok-tok', req.cookies.token);
+
+            if (req.query?.email !== req.user?.email) {
+                return res.status(403).send({ message: 'forbidden access' })
+            }
+
+            let query = {}
+            if (req.query?.email) {
+                query = { email: req.query.email }
+            }
+            const cursor = bookingCollection.find(query);
+            const result = await cursor.toArray();
+            res.json(result);
+
+        })
+
+
+        // PUT endpoint to update booking date
+        app.put('/bookings/:id', verifyToken, async (req, res) => {
+            const { id } = req.params;
+            const { bookingDate } = req.body;
+
+            // check if the user is authorized to update the booking
+            const booking = await bookingCollection.findOne({ _id: new ObjectId(id) });
+            if (!booking) {
+                return res.status(404).send({ message: 'Booking not found' });
+            }
+            if (booking.userEmail !== req.user.email) {
+                return res.status(403).send({ message: 'Forbidden access' });
+            }
+
+            // update the booking date
+            const result = await bookingCollection.updateOne(
+                { _id: new ObjectId(id) },
+                { $set: { bookingDate: bookingDate } }
+            );
+
+            if (result.modifiedCount === 1) {
+                res.send({ message: 'Booking date updated successfully' });
+            } else {
+                res.status(500).send({ message: 'Failed to update booking date' });
+            }
+        });
+
+
 
         // POST endpoint to create a booking
         app.post('/bookings', async (req, res) => {
             const bookingData = req.body;
-            console.log('bookingData:', bookingData);
+            // console.log('bookingData:', bookingData);
             try {
                 // Check for existing booking
                 const existingBooking = await bookingCollection.findOne({
