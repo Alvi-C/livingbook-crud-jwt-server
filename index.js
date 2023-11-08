@@ -1,14 +1,38 @@
 const express = require('express');
 const cors = require('cors');
 require('dotenv').config();
+const cookieParser = require('cookie-parser');
+const jwt = require('jsonwebtoken');
 const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 
 const app = express();
 const port = process.env.PORT || 3000;
 
 // third party middleware
-app.use(cors());
+app.use(cors({
+    origin: ['http://localhost:3000', 'http://localhost:5173'],
+    credentials: true
+}));
 app.use(express.json());
+app.use(cookieParser());
+
+// our middleware
+const verifyToken = async (req, res, next) => {
+    const token = req.cookies?.token;
+    // console.log('value of Token Middleware', token);
+    if (!token) {
+        return res.status(401).send({ message: 'unauthorized access' });
+    }
+    jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, (err, decoded) => {
+        if (err) {
+            return res.status(401).send({ message: 'unauthorized access' });
+        }
+        // console.log('Value in the token', decoded);
+        req.user = decoded;
+        next();
+    });
+};
+
 
 
 // check server is running or not
@@ -41,6 +65,31 @@ async function run() {
         const bookingCollection = database.collection("bookings");
         const featuredCollection = database.collection("featured");
 
+        // ---------- JWT authentication APIs --------------------
+        app.post('/jwt', async (req, res) => {
+            const user = req.body;
+            console.log(user);
+            const token = jwt.sign(user, process.env.ACCESS_TOKEN_SECRET, { expiresIn: '1h' })
+            res
+                .cookie('token', token, {
+                    httpOnly: true,
+                    secure: false,
+                    // sameSite: 'none'
+                })
+                .send({ success: true, token })
+        })
+
+        app.post('/logout', async (req, res) => {
+            const user = req.body;
+            console.log('logged out :', user);
+            res
+                .clearCookie('token', {
+                    maxAge: 0
+                })
+                .send({ success: true })
+        })
+
+
 
         // ---------- Featured APIs --------------------
         // GET all featured data
@@ -60,6 +109,7 @@ async function run() {
             const bookings = await cursor.toArray();
             res.send(bookings);
         })
+
 
         // POST endpoint to create a booking
         app.post('/bookings', async (req, res) => {
