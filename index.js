@@ -38,6 +38,44 @@ async function run() {
         const database = client.db(DB_NAME);
         const propertyCollection = database.collection('properties');
         const userCollection = database.collection("users");
+        const bookingCollection = database.collection("bookings");
+
+        // ---------- Bookings APIs --------------------
+        // GET endpoint to get the data by query parameters to check if booking exists or not with hotelId, bookingDate and userEmail
+        app.get('/bookings', async (req, res) => {
+            const query = req.query;
+            // console.log('query:', query);
+            const cursor = bookingCollection.find(query);
+            const bookings = await cursor.toArray();
+            res.send(bookings);
+        })
+
+        // POST endpoint to create a booking
+        app.post('/bookings', async (req, res) => {
+            const bookingData = req.body;
+            console.log('bookingData:', bookingData);
+            try {
+                // Check for existing booking
+                const existingBooking = await bookingCollection.findOne({
+                    hotelId: bookingData.hotelId,
+                    bookingDate: bookingData.bookingDate,
+                    userEmail: bookingData.userEmail
+                });
+                if (existingBooking) {
+                    return res.send({ message: 'Booking already exists for this date.' });
+                } else {
+                    // Insert booking into bookingCollection
+                    await bookingCollection.insertOne(bookingData);
+                }
+
+                // Return confirmation of booking creation
+                res.status(201).send({ message: 'Booking created successfully.', bookingId: bookingData._id });
+            } catch (error) {
+                res.status(500).send(error);
+            }
+        });
+
+
 
         // ---------- USER APIs --------------------
         // POST user data
