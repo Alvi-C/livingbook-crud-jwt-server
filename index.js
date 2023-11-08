@@ -10,7 +10,8 @@ const port = process.env.PORT || 3000;
 
 // third party middleware
 app.use(cors({
-    origin: ['http://localhost:3000', 'http://localhost:5173'],
+    // origin: ['http://localhost:3000', 'http://localhost:5173'],
+    origin: ['https://livingbook-auth.web.app', 'https://livingbook-auth.firebaseapp.com', 'http://localhost:3000', 'http://localhost:5173'],
     credentials: true
 }));
 app.use(express.json());
@@ -73,7 +74,7 @@ async function run() {
             res
                 .cookie('token', token, {
                     httpOnly: true,
-                    secure: false,
+                    secure: true,
                     // sameSite: 'none'
                 })
                 .send({ success: true, token })
@@ -155,7 +156,6 @@ async function run() {
                 res.status(500).send({ message: 'Failed to update booking date' });
             }
         });
-
 
 
         // POST endpoint to create a booking
