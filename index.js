@@ -11,7 +11,7 @@ const port = process.env.PORT || 3000;
 // third party middleware
 app.use(cors({
     // origin: ['http://localhost:3000', 'http://localhost:5173'],
-    origin: ['https://livingbook-auth.web.app', 'https://livingbook-auth.firebaseapp.com', 'http://localhost:3000', 'http://localhost:5173'],
+    origin: ['https://livingbook-auth.web.app', 'https://livingbook-auth.firebaseapp.com', 'https://living-book-client.vercel.app', 'http://localhost:3000', 'http://localhost:5173'],
     credentials: true
 }));
 app.use(express.json());
